@@ -1,0 +1,47 @@
+class Solution:
+    def findMaxPathScore(self, edges: List[List[int]], online: List[bool], k: int) -> int:
+        n = len(online)
+        graph = [[] for _ in range(n)]
+        indeg = [0] * n
+        max_cost = 0
+        for u, v, c in edges:
+            graph[u].append((v, c))
+            indeg[v] += 1
+            max_cost = max(max_cost, c)
+        q = deque([i for i in range(n) if indeg[i] == 0])
+        topo = []
+        while q:
+            u = q.popleft()
+            topo.append(u)
+            for v, _ in graph[u]:
+                indeg[v] -= 1
+                if indeg[v] == 0:
+                    q.append(v)
+        def can(min_edge):
+            INF = float('inf')
+            dist = [INF] * n
+            dist[0] = 0
+            for u in topo:
+                if dist[u] == INF:
+                    continue
+                if u != 0 and u != n - 1 and not online[u]:
+                    continue
+                for v, c in graph[u]:
+                    if c < min_edge:
+                        continue
+                    if v != 0 and v != n - 1 and not online[v]:
+                        continue
+                    nd = dist[u] + c
+                    if nd < dist[v]:
+                        dist[v] = nd
+            return dist[n - 1] <= k
+        left, right = 0, max_cost
+        ans = -1
+        while left <= right:
+            mid = (left + right) // 2
+            if can(mid):
+                ans = mid
+                left = mid + 1
+            else:
+                right = mid - 1
+        return ans
