@@ -1,0 +1,54 @@
+class Solution:
+    def pathExistenceQueries(self, n: int, nums: List[int], maxDiff: int, queries: List[List[int]]) -> List[int]:
+        values = sorted(set(nums))
+        m = len(values)
+        pos = {v: i for i, v in enumerate(values)}
+        furthest = [0] * m
+        j = 0
+        for i in range(m):
+            while j + 1 < m and values[j + 1] - values[i] <= maxDiff:
+                j += 1
+            furthest[i] = j
+        comp = [-1] * m
+        cid = 0
+        i = 0
+        while i < m:
+            comp[i] = cid
+            r = furthest[i]
+            k = i + 1
+            while k <= r:
+                comp[k] = cid
+                if furthest[k] > r:
+                    r = furthest[k]
+                k += 1
+            cid += 1
+            i = k
+        LOG = 18
+        up = [furthest]
+        for _ in range(1, LOG):
+            prev = up[-1]
+            cur = [0] * m
+            for i in range(m):
+                cur[i] = prev[prev[i]]
+            up.append(cur)
+        ans = []
+        for u, v in queries:
+            if u == v:
+                ans.append(0)
+                continue
+            a = pos[nums[u]]
+            b = pos[nums[v]]
+            if a > b:
+                a, b = b, a
+            if comp[a] != comp[b]:
+                ans.append(-1)
+                continue
+            steps = 0
+            cur = a
+            for k in range(LOG - 1, -1, -1):
+                nxt = up[k][cur]
+                if nxt < b:
+                    cur = nxt
+                    steps += 1 << k
+            ans.append(steps + 1)
+        return ans
