@@ -1,0 +1,39 @@
+class Solution:
+    def smallestPalindrome(self, s: str, k: int) -> str:
+        freq = Counter(s)
+        half = {}
+        mid = ""
+        n = 0
+        for c in sorted(freq):
+            half[c] = freq[c] // 2
+            n += half[c]
+            if freq[c] % 2:
+                mid = c
+        def count_perm(cnt, total):
+            res = 1
+            rem = total
+            for c in cnt:
+                if cnt[c]:
+                    res *= comb(rem, cnt[c])
+                    rem -= cnt[c]
+                    if res > k:
+                        return k + 1
+            return res
+        if count_perm(half, n) < k:
+            return ""
+        left = []
+        total = n
+        while total:
+            for c in sorted(half):
+                if half[c] == 0:
+                    continue
+                half[c] -= 1
+                ways = count_perm(half, total - 1)
+                if ways >= k:
+                    left.append(c)
+                    total -= 1
+                    break
+                k -= ways
+                half[c] += 1
+        left = "".join(left)
+        return left + mid + left[::-1]
